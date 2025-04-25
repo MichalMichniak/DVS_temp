@@ -757,8 +757,8 @@ class SpikingConv2D_Htanh(nn.Module):
         tmin1, tmax1, first_val, in_scalar1 = self.conv_first.set_params(t_min_prev, t_min, in_ranges_max, tmax2, in_scalar=in_scalar)
         self.t_max = tmax1
         tmins, tmaxs, sub_val, in_scalar_sub = self.sub.set_params(t_min, tmax1, first_val,second_val, in_scalar1=in_scalar1, in_scalar2=in_scalar2)
-        # tmaxs = max(min(tmaxs,tmins+1.0/in_scalar_sub)+eps_V, minimal_t_max)
-        tmaxs = max(tmaxs, minimal_t_max)
+        tmaxs = max(min(tmaxs,tmins+1.0/in_scalar_sub)+eps_V, minimal_t_max)
+        # tmaxs = max(tmaxs, minimal_t_max)
         self.sub.t_max = tmaxs
         self.t_max = tmaxs
         # Returning for function signature consistency
@@ -828,7 +828,7 @@ class AddSNNLayer_all(nn.Module):
 
         output_val = input1_val*self.mul1 + input2_val*self.mul2 + self.B/self.multiplier
         max_V = max(output_val)+eps_V*self.multiplier_temp/(self.multiplier)
-        print(f"epsilon: {eps_V*self.multiplier_temp/(self.multiplier)}, mul: {self.multiplier}")
+        # print(f"epsilon: {eps_V*self.multiplier_temp/(self.multiplier)}, mul: {self.multiplier}")
         self.t_min = torch.tensor(t_min, dtype=torch.float64, requires_grad=False)
         self.t_max = torch.tensor(max(t_min + self.B_n*max_V, minimal_t_max), dtype=torch.float64, requires_grad=False)
         
@@ -928,6 +928,7 @@ class AddSNNLayer_Htanh(nn.Module):
         tmin1, tmax1, first_val, in_scalar_first = self.first.set_params(t_min_prev, t_min,input1_val, input2_val, minimal_t_max=tmax2, in_scalar1=in_scalar1, in_scalar2=in_scalar2)
 
         tmins, tmaxs, sub_val, in_scalar_sub = self.sub.set_params(t_min, tmax1, first_val,second_val, in_scalar1=in_scalar_first, in_scalar2=in_scalar_second) ## t_min as angument do nothing
+        
         self.sub.t_max = max(tmaxs, minimal_t_max)
         return tmins, max(tmaxs, minimal_t_max), torch.minimum(sub_val,(1.0/in_scalar_sub)), in_scalar_sub
 
